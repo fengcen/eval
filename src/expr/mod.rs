@@ -2,9 +2,14 @@
 use {Function, Functions, Context, Contexts, Compiled, Value};
 use tree::Tree;
 use error::Error;
-use serde::Serialize;
 use to_value;
-use std::fmt;
+use std::{fmt, cmp};
+
+use serde::de::{self, Deserialize};
+use serde::ser::Serialize;
+
+use serde::Deserializer;
+use serde::Serializer;
 
 
 /// Expression builder
@@ -85,6 +90,31 @@ impl Clone for Expr {
 impl fmt::Debug for Expr {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> Result<(), fmt::Error> {
         write!(formatter, "{:?}", self.expression)
+    }
+}
+
+impl cmp::PartialEq for Expr {
+    fn eq(&self, other: &Expr) -> bool {
+        self.expression == other.expression
+    }
+}
+
+impl Serialize for Expr {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+    {
+        serializer.serialize_str(format!("{:?}", self).as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for Expr {
+    fn deserialize<D>(deserializer: D) -> Result<Expr, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        String::deserialize(deserializer)
+            .and_then(|expr| Expr::new(expr).compile().map_err(de::Error::custom))
     }
 }
 
