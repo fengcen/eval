@@ -66,7 +66,8 @@ impl Expr {
         }
     }
 
-    fn get_compiled(&self) -> Option<&Compiled> {
+    /// Get reference to compiled object
+    pub fn get_compiled(&self) -> Option<&Compiled> {
         self.compiled.as_ref()
     }
 }
